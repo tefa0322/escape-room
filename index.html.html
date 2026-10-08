@@ -1,0 +1,80 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Escape: La Bóveda del Chef</title>
+<style>
+:root{--bg:#0d0a14;--pn:#1a1426;--tx:#f3e9d8;--mu:#a79bb8;--gl:#ffb703;--rd:#ff3b5c;--gr:#3ddc97;--pu:#7b4dff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 0,#2a1840 0,var(--bg) 65%) fixed;color:var(--tx);font:16px/1.45 system-ui,sans-serif;min-height:100vh}
+main{max-width:720px;margin:auto;padding:14px}
+h1{margin:.2em 0;font-size:1.6rem;text-shadow:0 0 14px var(--pu)}.sub{color:var(--mu)}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.timer{font:700 1.8rem ui-monospace,monospace;color:var(--gl);text-shadow:0 0 10px var(--gl)}.timer.low{color:var(--rd);animation:bl .6s infinite alternate}
+@keyframes bl{to{opacity:.35}}
+.room{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.obj{background:var(--pn);border:1px solid #3a2b55;border-radius:14px;padding:16px 8px;text-align:center;cursor:pointer;color:var(--tx);font-size:1rem;transition:.2s}
+.obj:hover{box-shadow:0 0 18px var(--pu);transform:translateY(-2px)}.obj .e{font-size:2.6rem;display:block}
+.obj.done{border-color:var(--gr);box-shadow:0 0 14px #3ddc9755}
+.card{background:var(--pn);border:1px solid #3a2b55;border-radius:14px;padding:14px;margin:10px 0}
+button.b{background:var(--pu);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-size:1rem;cursor:pointer;margin:4px 4px 4px 0}
+button.g{background:transparent;color:var(--mu);border:1px solid #3a2b55}
+input{font-size:1.1rem;padding:9px;border-radius:8px;border:1px solid #4b3a6b;background:#0d0a14;color:var(--tx);width:110px;text-align:center}
+.slots{display:flex;gap:8px;justify-content:center;margin:10px 0}.slot{width:52px;height:64px;border:2px solid #4b3a6b;border-radius:10px;display:grid;place-items:center;font:700 1.8rem ui-monospace,monospace;color:var(--gl)}
+.slot.on{border-color:var(--gl);box-shadow:0 0 12px var(--gl)}
+table{border-collapse:collapse;margin:6px 4px}td,th{padding:5px 10px;text-align:center}td{border:1px solid #4b3a6b}th{color:var(--mu);font-size:.75rem;font-weight:500}
+.sc{overflow-x:auto}.ok{color:var(--gr)}.bad{color:var(--rd)}.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+</style></head><body><main id="app"></main>
+<script>
+const P=[
+{e:"🧊",n:"La nevera helada",id:0,d:4,story:"Un papel congelado dice: «Para abrir, saber debes cuántas celdas tendrá el resultado».",
+ q:"A es de 2×3 y B es de 3×2. Se pueden multiplicar (3 = 3). ¿Cuántas celdas tiene el resultado A·B?",
+ A:null,hint:"El resultado tiene las filas de A (2) y las columnas de B (2). Multiplica filas × columnas.",ans:4},
+{e:"📖",n:"El libro de recetas",id:1,d:9,story:"Una página manchada de salsa: «El precio de la Hawaiana con el Proveedor X guarda el 2.º dígito».",
+ q:"¿Cuánto cuesta la Hawaiana con el Proveedor X? Es la fila 2 de A por la columna 1 de B.",
+ A:[[2,1,0],[1,2,2]],B:[[3,2],[1,4],[2,1]],ra:["Margarita","Hawaiana"],ia:["Queso","Jamón","Piña"],pv:["Prov. X","Prov. Y"],
+ hint:"Fila 2 de A = [1,2,2]. Columna 1 de B = [3,1,2]. Haz 1·3 + 2·1 + 2·2.",ans:9},
+{e:"🔥",n:"El horno antiguo",id:2,d:7,story:"El horno marca un enigma: «Suma la diagonal (arriba-izquierda y abajo-derecha) del resultado y tendrás el 3.º dígito».",
+ q:"Calcula A·B. Escribe la suma de sus dos celdas de la diagonal principal.",
+ A:[[2,1],[0,3]],B:[[1,4],[2,1]],ra:["f1","f2"],ia:["c1","c2"],pv:["c1","c2"],
+ hint:"Celda (1,1) = 2·1 + 1·2 = 4. Celda (2,2) = 0·4 + 3·1 = 3. Súmalas.",ans:7},
+{e:"🗝️",n:"El cofre del chef",id:3,d:4,story:"Dentro del cofre, una nota: «En mi cocina el orden importa. B·A no es A·B. El 4.º dígito está en B·A».",
+ q:"Calcula B·A (primero B, luego A). ¿Qué número queda en la fila 2, columna 2?",
+ A:[[3,0],[1,2]],B:[[1,2],[0,1]],ra:["B f1","B f2"],ia:["c1","c2"],pv:["A c1","A c2"],
+ hint:"Aquí la primera matriz es B=[[3,0],[1,2]] y la segunda A=[[1,2],[0,1]]. Fila 2 de B = [1,2], columna 2 de A = [2,1]. Haz 1·2 + 2·1.",ans:4}];
+const CODE="4974".split("");
+let S={team:"",left:300,open:-1,got:[false,false,false,false],t:null,over:false,msg:""};
+const app=document.getElementById('app'),$=s=>document.querySelector(s);
+const mt=(M,r,c,cap)=>`<div style="display:inline-block;vertical-align:top"><div class="sub" style="font-size:.8rem">${cap}</div><table><tr><th></th>${c.map(x=>`<th>${x}</th>`).join('')}</tr>${M.map((row,i)=>`<tr><th>${r[i]}</th>${row.map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}</table></div>`;
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+":"+String(s%60).padStart(2,'0');
+function intro(){app.innerHTML=`<h1>🕯️ Escape: La Bóveda del Chef</h1><p class="sub">Una noche de tormenta, el chef de la pizzería <b>desapareció</b>. Dejó su receta secreta en una bóveda sellada con un código de 4 dígitos... y la puerta se cerró detrás de ustedes.</p>
+<div class="card"><p>Tienen <b>5 minutos</b>. Hay 4 objetos en la cocina; cada uno guarda un acertijo de matrices y revela un dígito del código. <b>Repártanse un objeto por persona</b> y luego usen el código en la bóveda.</p><p class="sub">Pista: cada celda de A·B = fila de A × columna de B, multiplicando y sumando. Cada pista cuesta 15 segundos.</p>
+<p>Nombre del equipo: <input id="tn" style="width:190px" maxlength="24" placeholder="Los Chefs"> <button class="b" onclick="begin()">¡Entrar! 🚪</button></p></div>`+rkCard()}
+function begin(){S.team=$('#tn').value.trim()||"Equipo misterioso";tid=S.team.toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,20)+'_'+Math.random().toString(36).slice(2,6);sv();S.t=setInterval(tick,1000);room()}
+function tick(){if(S.over)return;S.left--;if(S.left<=0){S.left=0;finish(false)}else{const e=$('#tm');if(e){e.textContent=fmt(S.left);e.classList.toggle('low',S.left<=60)}}}
+function hud(){return `<div class="hud"><b>🍕 ${S.team}</b><span id="tm" class="timer ${S.left<=60?'low':''}">${fmt(S.left)}</span></div>
+<div class="slots">${CODE.map((c,i)=>`<div class="slot ${S.got[i]?'on':''}">${S.got[i]?c:'?'}</div>`).join('')}</div>`}
+function room(){if(S.over)return;S.open=-1;S.msg="";const all=S.got.every(x=>x);
+ app.innerHTML=hud()+`<div class="room">${P.map(p=>`<button class="obj ${S.got[p.id]?'done':''}" onclick="openP(${p.id})"><span class="e">${S.got[p.id]?'✅':p.e}</span>${p.n}</button>`).join('')}</div>
+ <div class="card">${all?`<b>🔓 ¡Tienen los 4 dígitos!</b><p>Ordénenlos y abran la bóveda:</p><input id="cd" maxlength="4" inputmode="numeric" placeholder="0000"> <button class="b" onclick="vault()">Abrir bóveda</button><p class="bad" id="vm">${S.msg}</p>`:`<span class="sub">Toquen un objeto para investigarlo. Falta encontrar ${S.got.filter(x=>!x).length} dígito(s).</span>`}</div>`}
+function openP(i){if(S.over)return;S.open=i;const p=P[i];
+ let m="";if(p.A)m=`<div class="sc">${mt(p.A,p.ra.slice(0,p.A.length),p.ia.slice(0,p.A[0].length),i==3?"B":"A")}${mt(p.B,p.ia.slice(0,p.B.length),p.pv,i==3?"A":"B")}</div>`;
+ app.innerHTML=hud()+`<div class="card"><h2 style="margin:0">${p.e} ${p.n}</h2><p><i class="sub">${p.story}</i></p>${m}<p>${p.q}</p>
+ <p><input id="an" type="number" inputmode="numeric"> <button class="b" onclick="chk(${i})">Probar</button><button class="b g" onclick="hint(${i})">💡 Pista (−15 s)</button><button class="b g" onclick="room()">← Volver</button></p><p id="mg"></p></div>`}
+function chk(i){const v=$('#an').value;if(v!==''&&+v===P[i].ans){S.got[i]=true;sv();app.innerHTML=hud()+`<div class="card"><h2 class="ok">🔓 ¡Clic! Se abre el ${P[i].n.toLowerCase()}</h2><p>Dígito número ${i+1} del código: <b style="font-size:2rem;color:var(--gl)">${P[i].d}</b></p><p class="sub">Anótenlo: el orden de los dígitos es el de los objetos (🧊 📖 🔥 🗝️).</p><button class="b" onclick="room()">Seguir</button></div>`}
+ else{$('#mg').innerHTML='<span class="bad">❌ Nada pasa... revisen multiplicar fila × columna.</span>';$('#an').classList.add('shake');setTimeout(()=>$('#an')&&$('#an').classList.remove('shake'),400)}}
+function hint(i){S.left=Math.max(1,S.left-15);$('#mg').innerHTML=`<span class="sub">💡 ${P[i].hint}</span>`;$('#tm').textContent=fmt(S.left)}
+function vault(){if($('#cd').value===CODE.join('')){finish(true)}else{S.msg="❌ Código incorrecto. Revisen el orden 🧊 📖 🔥 🗝️.";room()}}
+function finish(w){S.over=true;S.won=w;clearInterval(S.t);sv();const found=S.got.filter(x=>x).length;
+ app.innerHTML=w?`<h1>🎉 ¡ESCAPARON!</h1><div class="card"><p>La bóveda se abre y encuentran la receta secreta... y una nota: «Quien domine las matrices, domina mi cocina».</p><p><b>${S.team}</b> escapó con <b class="ok">${fmt(S.left)}</b> de sobra y ${found}/4 acertijos.</p><p class="sub">Su resultado ya está en el ranking.</p></div>`+rkCard()
+ :`<h1>⏰ Se acabó el tiempo</h1><div class="card"><p>La puerta sigue cerrada... <b>${S.team}</b> resolvió ${found}/4 acertijos.</p><p class="sub">Dígitos hallados: ${S.got.map((g,i)=>g?CODE[i]:'?').join(' ')}</p></div>`+rkCard()}
+let db=null,ranks=[],tid="";
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function rk(){return ranks.map((r,i)=>`<li>${i==0?'🥇 ':i==1?'🥈 ':i==2?'🥉 ':''}${esc(r.name)} — ${r.won?'<b class="ok">ESCAPÓ</b> con '+fmt(r.left):r.found+'/4 acertijos'}</li>`).join('')||'<li class="sub">Aún no hay equipos</li>'}
+function rkCard(){return db?`<div class="card"><b>🏅 Ranking en vivo</b><ol id="rk">${rk()}</ol></div>`:`<p class="sub">Ranking en vivo no disponible (se necesita iniciar sesión).</p>`}
+function sv(){if(!db||!tid)return;try{const f=S.got.filter(x=>x).length;db.doc("teams/"+tid).set({name:S.team,found:f,left:S.left,won:!!S.won,score:(S.won?1000:0)+f*100+S.left})}catch(e){}}
+(async()=>{try{db=await claude.use("db");if(!db)return;db.collection("teams").onSnapshot(q=>{const a=[];(q.docs||q).forEach(d=>{const v=d.data?d.data():d;if(v&&v.name)a.push(v)});ranks=a.sort((x,y)=>y.score-x.score).slice(0,20);const l=$('#rk');if(l)l.innerHTML=rk();else if(!S.team&&!S.over&&!window._f&&!($('#tn')&&$('#tn').value)){window._f=1;intro()}})}catch(e){db=null}})();
+intro();
+</script></body></html>
+
+</body></html>
